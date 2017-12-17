@@ -1,0 +1,14 @@
+chmod ugo+rwx -R /opt/jbiclustge-cli
+
+
+FILE="/usr/local/bin/jbiclustge-cli"
+
+if [ ! -f "$FILE" ]
+then
+  ln -s /opt/jbiclustge-cli/jbiclustge-cli.sh /usr/local/bin/jbiclustge-cli
+else
+  echo "$FILE already exists"
+fi
+
+
+#ln -s /opt/jbiclustge-cli/jbiclustge-cli.sh /usr/local/bin/jbiclustge-cli

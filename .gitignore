@@ -1,0 +1,11 @@
+target/
+.settings/
+methods_exe/
+JBiclustGE_RLibs/
+.jbclustgestatus
+.configured
+.installdone
+properties/
+installers/
+enrichmentanalysis/
+.RData
