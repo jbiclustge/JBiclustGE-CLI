@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+ 
+     project    
+     description
+                   
+     orocha                                                                
+     ====================================================================== -->
+<project name="auxfiles" basedir="${project.build.directory}" default="help">
+    <description>description </description>
+	
+	
+	<property name="build.compiler" value="extJavac"/>
+        <property name="build.sysclasspath" value="ignore"/>
+        <property name="debug" value="on"/>
+        <property name="optimize" value="off"/>
+	    <property name="deprecation" value="false"/>
+	    <property name="depend" value="true"/>
+	    <property name="verbose" value="false"/>
+	    <property name="target" value="1.8"/>
+
+
+
+    <!-- ================================= 
+          targets             
+         ================================= -->
+	<target name="help">
+	    <echo>You can use the following targets:</echo>
+	    <echo> </echo>
+	    <echo>  help    : (default) Prints this message </echo>
+		<echo>  build-releases : Creates  JBiclustGE installers for Windows and Linux platforms</echo>
+	    <echo>  clean   : Deletes work directories</echo>
+	    <echo></echo>
+	    <echo>For example, to clean, compile, and package all at once, run:</echo>
+	    <echo>prompt> ant build-releases </echo>
+	  </target>
+	
+	 <!-- ==================================================================
+	         Initialization target 
+	      ==================================================================-->
+
+	 <target name="init">
+	 	<property name="build.dir" value="${project.build.directory}/staging"/>
+	  </target>
+	
+	<target name="linux-run-script-deb">
+			<echo file="${build.dir}/jbiclustge-cli.sh" append="false">#!/bin/bash
+					###############################################################################################
+					#
+					# JBiclustGE version ${biclustgeversion} for Linux
+					# 
+					# IBB-CEB - Institute for Biotechnology and  Bioengineering - Centre of Biological Engineering
+					# CCTC - Computer Science and Technology Center
+					# University of Minho
+					#
+					# Created inside the BioSystems Research Group (https://www.ceb.uminho.pt/biosystems)
+					# University of Minho
+					#
+					# Developed by Orlando Rocha
+					# Copyright (c) ${YEAR}.
+					#
+					###############################################################################################
+
+					APP_NAME="jbiclustge-cli"
+					JAR_NAME="$APP_NAME.jar"
+						
+					APP_HOME="/opt/$APP_NAME"
+						
+					cd $APP_HOME
+						
+				    XMX=-Xmx2048m
+					XMS=-Xms512m
+						 					
+					java $XMX $XMS -jar $JAR_NAME "$1" "$2" "$3" "$4"
+					</echo>
+						
+				<chmod file="${build.dir}/jbiclustge-cli.sh" perm="a+x"/>
+
+				</target>
+	
+
+	<target name="linux-run-script">
+				<echo file="${build.dir}/jbiclustge-cli" append="false">#!/bin/bash
+				###############################################################################################
+				#
+				# JBiclustGE version ${biclustgeversion} for Linux
+				# 
+				# IBB-CEB - Institute for Biotechnology and  Bioengineering - Centre of Biological Engineering
+				# CCTC - Computer Science and Technology Center
+				# University of Minho
+				#
+				# Created inside the BioSystems Research Group (https://www.ceb.uminho.pt/biosystems)
+				# University of Minho
+				#
+				# Developed by Orlando Rocha
+				# Copyright (c) ${YEAR}.
+				#
+				###############################################################################################
+                    
+				APP_NAME="jbiclustge-cli"
+				JAR_NAME="$APP_NAME.jar"
+												
+				APP_HOME=`dirname $0`
+							
+				XMX=-Xmx2048m
+				XMS=-Xms512m
+
+				cd $APP_HOME
+				java $XMX $XMS -jar $APP_HOME/$JAR_NAME "$@"
+				</echo>
+					
+			<chmod file="${build.dir}/jbiclustge-cli" perm="a+x"/>
+
+			</target>
+	
+	<target name="linux-add-path-run-script">
+						<echo file="${build.dir}/add_jbiclustge-cli_as_environment_variable.sh" append="false">
+							#!/bin/sh
+
+							APP_HOME=$(pwd)
+							echo $APP_HOME
+							echo 'export PATH=$PATH:'"${APP_HOME}" >> ~/.bashrc
+
+							exec bash
+					    </echo>
+						<chmod file="${build.dir}/add_jbiclustge-cli_as_environment_variable.sh" perm="a+x"/>
+					</target>
+	
+	
+	<target name="windows-run-script">
+			<echo file="${build.dir}/jbiclustge-cli.bat" append="false">@echo off
+				REM ###############################################################################################
+				REM #
+				REM	# JBiclustGE version ${biclustgeversion} for Windows
+				REM	# 
+				REM	# IBB-CEB - Institute for Biotechnology and  Bioengineering - Centre of Biological Engineering
+				REM	# CCTC - Computer Science and Technology Center
+				REM	# University of Minho
+				REM	# Created inside the BioSystems Research Group (https://www.ceb.uminho.pt/biosystems)
+				REM	# University of Minho
+				REM	#
+				REM	# Developed by Orlando Rocha
+				REM	# Copyright (c) ${YEAR}.
+				REM	#
+				REM	#
+				REM ###############################################################################################
+				REM ################ old #################
+				REM ####   set HOME="%~dp0"  #############
+				REM ####   cd %HOME%  ####################
+				REM ######################################
+				REM ######  for /f %%i in ("%0") do set apppath=%%~dpi
+				REM ######  cd /d %apppath%
+								
+				setlocal
+				cd /d %~dp0
+				java -jar jbiclustge-cli.jar %1 %2 %3 %4
+				
+		    </echo>
+			<chmod file="${build.dir}/jbiclustge-cli.bat" perm="a+x"/>
+		</target>
+	
+	
+	<target name="windows-add-path-run-script">
+					<echo file="${build.dir}/add_jbiclustge-cli_as_environment_variable.bat" append="false">@echo off
+						setlocal
+						cd /d %~dp0
+						setx path "%path%;"%~dp0
+						
+				    </echo>
+					<chmod file="${build.dir}/add_jbiclustge-cli_as_environment_variable.bat" perm="a+x"/>
+				</target>
+	
+	
+
+	
+	<target name="build-aux-files" description="Create  auxiliar files" depends="init">
+			<antcall target="linux-run-script"/>
+		    <antcall target="linux-run-script-deb"/>
+			<antcall target="linux-add-path-run-script"/>
+			<antcall target="windows-run-script"/>
+			<antcall target="windows-add-path-run-script"/>
+	</target>
+	
+</project>

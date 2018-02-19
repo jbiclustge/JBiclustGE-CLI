@@ -1,0 +1,8 @@
+Package: JBiclustGE-CLI
+Version: 1.0
+Section: science
+Priority: low
+Architecture: all
+Description: JBiclustGE-CLI is a command-line framework for biclustering analysis
+Maintainer: Orlando Rocha <ornrocha@gmail.com>
+Depends: oracle-java8-installer
