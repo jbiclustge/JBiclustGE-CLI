@@ -876,7 +876,7 @@ public class CommandLineInterface {
 		private void help() {
 			HelpFormatter formater = new HelpFormatter();
 			formater.setOptionComparator(null);
-			formater.setWidth(100);
+			formater.setWidth(200);
 			
 			if(OSystemUtils.isLinux()) {
 				File check1=new File("/usr/local/bin/jbiclustge-cli");

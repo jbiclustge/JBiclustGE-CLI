@@ -1,12 +1,3 @@
-DIR="/opt/jbiclustge-cli"
-
-if [ -d $DIR ]
-then
-   rm -R -f /opt/jbiclustge-cli
-else
-   echo "$DIR not found"
-fi
-
 FILE="/usr/local/bin/jbiclustge-cli"
 
 if [ ! -f "$FILE" ]

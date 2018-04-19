@@ -20,8 +20,8 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<izpack.version>5.1.2</izpack.version>
 		<izpack.staging>${project.build.directory}/staging</izpack.staging>
-		<installer-output-filename>JBiclustGE-cli-installer.jar</installer-output-filename>
-		<deb-output-filename>JBiclustGE-cli.deb</deb-output-filename>
+		<installer-output-filename>jbiclustge-cli-installer.jar</installer-output-filename>
+		<deb-output-filename>jbiclustge-cli.deb</deb-output-filename>
 		<deb-dir-name>jbiclustge-cli</deb-dir-name>
 	</properties>
 
