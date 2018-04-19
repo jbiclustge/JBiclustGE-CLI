@@ -38,6 +38,12 @@ Next, please visit the [website](https://jbiclustge.github.io) to see the usage 
 3. Installers will be placed into folder "target"
     - File "jbiclustge-cli-installer.jar" is the installer that can be used in windows or linux
     - File "jbiclustge-cli.deb" is the deb installer that can be used only in linux
+    
+### Compiled versions
+
+If you do not want to compile the release from git repository, you can download one of the following installers:
+   - [Jar installer](https://jbiclustge.github.io/configs/download/#windows-and-linux-jar-installer_1) for windows and linux
+   - [Deb installer](https://jbiclustge.github.io/configs/download/#linux-deb-installer_1) for linux    
 
 ## Installation
 
