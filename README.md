@@ -42,6 +42,7 @@ Next, please visit the [website](https://jbiclustge.github.io) to see the usage 
 ## Installation
 
 To proceed with installation using jbiclustge-cli-installer.jar, follow this [instructions](https://jbiclustge.github.io/configs/download/#windows-and-linux-jar-installer_1)
+
 Otherwise if you are using the jbiclustge-cli.deb, follow this [instructions](https://jbiclustge.github.io/configs/download/#linux-deb-installer_1)
 
 
