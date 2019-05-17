@@ -53,19 +53,12 @@ public class BiclusteringMethodRunWithGSEATask extends BiclusteringMethodRunTask
 		this.infogsea=gseainfo;
 	}
 	
-	/* (non-Javadoc)
-	 * @see processcontrolcenters.tasks.BiclusteringMethodRunTask#saveParallelCoordinates()
-	 */
-	public void saveParallelCoordinates(){
-		super.saveParallelCoordinates();
+	public BiclusteringMethodRunWithGSEATask(AbstractBiclusteringAlgorithmCaller method,GSEAInfoContainer gseainfo, String saveresultstodir, Integer numberruns) {
+		this(method, gseainfo, saveresultstodir);
+		if(numberruns!=null)
+			this.numberruns=numberruns;
 	}
 	
-	/* (non-Javadoc)
-	 * @see processcontrolcenters.tasks.BiclusteringMethodRunTask#saveHeatmaps()
-	 */
-	public void saveHeatmaps(){
-		super.saveHeatmaps();
-	}
 	
 
 	/* (non-Javadoc)
@@ -73,32 +66,36 @@ public class BiclusteringMethodRunWithGSEATask extends BiclusteringMethodRunTask
 	 */
 	@Override
 	public void run() {
-		super.run();
-		if(infogsea.getEnrichmentanalyser()!=null){
-			EnrichmentAnalyserProcessor currentprocessor=infogsea.getEnrichmentanalyser().copyWorkingInstance();
-			BiclusterList results=super.getResults();
-			currentprocessor.setBiclusteringResultsToAnalyse(results);
-			try {
-				currentprocessor.run();
-			} catch (Exception e1) {
-				e1.printStackTrace();
+
+		for (int i = 0; i < numberruns; i++) {
+
+			executeBiclusteringAlgorithm();
+			if(infogsea.getEnrichmentanalyser()!=null && getResults().size()>0){
+				EnrichmentAnalyserProcessor currentprocessor=infogsea.getEnrichmentanalyser().copyWorkingInstance();
+				BiclusterList results=getResults();
+				currentprocessor.setBiclusteringResultsToAnalyse(results);
+				try {
+					currentprocessor.run();
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+				EnrichmentAnalysisResultList resultsgsea=currentprocessor.getEnrichmentAnalysisResults();
+
+				BiclusteringGSEATaskCSVReporter reporter=new BiclusteringGSEATaskCSVReporter(results, resultsgsea);
+				reporter.setEnrichmentAnalysisPvalueTresholds(infogsea.getPvalues());
+				reporter.useAdjustedpvalues(infogsea.isUseadjustedpvalues());
+
+				String saveto=FilenameUtils.concat(resultsfilepath, "GSEA_Analysis");
+
+				MTUDirUtils.checkandsetDirectory(saveto);
+				try {
+					reporter.writetodirectory(saveto);
+				} catch (Exception e) {
+					LogMessageCenter.getLogger().addCriticalErrorMessage("Error saving report files", e);
+				}
 			}
-			EnrichmentAnalysisResultList resultsgsea=currentprocessor.getEnrichmentAnalysisResults();
-		  
-			BiclusteringGSEATaskCSVReporter reporter=new BiclusteringGSEATaskCSVReporter(results, resultsgsea);
-			reporter.setEnrichmentAnalysisPvalueTresholds(infogsea.getPvalues());
-			reporter.useAdjustedpvalues(infogsea.isUseadjustedpvalues());
-		
-			String saveto=FilenameUtils.concat(resultsfilepath, "GSEA_Analysis");
-			
-			MTUDirUtils.checkandsetDirectory(saveto);
-			try {
-				reporter.writetodirectory(saveto);
-			} catch (Exception e) {
-				LogMessageCenter.getLogger().addCriticalErrorMessage("Error saving report files", e);
-			}
+			method.reset();
 		}
-  		
 	}
 
 }

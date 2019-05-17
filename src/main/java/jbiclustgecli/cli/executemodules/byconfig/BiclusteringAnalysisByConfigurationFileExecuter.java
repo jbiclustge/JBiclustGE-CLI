@@ -130,7 +130,7 @@ public class BiclusteringAnalysisByConfigurationFileExecuter extends CommandLine
 	@Override
 	protected void runExecuter() throws Exception {
 		
-		String dirresults=FilenameUtils.concat(configdir, "Results_biclustering");
+		/*String dirresults=FilenameUtils.concat(configdir, "Results_biclustering");
 		MTUDirUtils.checkandsetDirectory(dirresults);
 		BiclusteringMethodsExecutionWithGSEAControlCenter controlcenter=new BiclusteringMethodsExecutionWithGSEAControlCenter(expressiondataloader.getExpressionDataset(), gsealoader.getInfoContainer(), dirresults);
 		if(expressiondataloader.isMissingValuesImputation()){
@@ -157,7 +157,7 @@ public class BiclusteringAnalysisByConfigurationFileExecuter extends CommandLine
 		
 		controlcenter.execute();
 		if(shutdownrenev)
-			RConnector.closeSession();
+			RConnector.closeSession();*/
 		
 	}
 	
@@ -186,6 +186,16 @@ public class BiclusteringAnalysisByConfigurationFileExecuter extends CommandLine
 	@Override
 	public boolean needsToCloseRsession() {
 		return shutdownrenev;
+	}
+
+
+
+
+
+	@Override
+	public String getBiclusteringResultsFolder() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	

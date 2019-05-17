@@ -73,6 +73,9 @@ public abstract class CommandLineExecuter{
 	 * @return true, if successful
 	 */
 	public abstract boolean needsToCloseRsession();
+	
+	
+	public abstract String getBiclusteringResultsFolder();
 
 
 }

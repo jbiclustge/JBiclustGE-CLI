@@ -21,9 +21,12 @@
 package jbiclustgecli.processcontrolcenters;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 import jbiclustge.datatools.expressiondata.dataset.ExpressionData;
 import jbiclustge.execution.controlcenters.common.AbstractBiclusteringControlCenter;
+import jbiclustge.methods.algorithms.AbstractBiclusteringAlgorithmCaller;
+import jbiclustge.propertiesmodules.PropertyLabels;
 import pt.ornrocha.threadutils.MTUMultiThreadRunneableExecutor;
 
 // TODO: Auto-generated Javadoc
@@ -36,6 +39,7 @@ public abstract class AbstractBiclusteringProcessCLIControlCenter extends Abstra
 	/** The simultaneousprocesses. */
 	protected Integer simultaneousprocesses=null;
 
+	protected LinkedHashMap<AbstractBiclusteringAlgorithmCaller, Integer> runmap=null;
 	
 	/**
 	 * Instantiates a new abstract biclustering process CLI control center.
@@ -52,9 +56,16 @@ public abstract class AbstractBiclusteringProcessCLIControlCenter extends Abstra
 	 *
 	 * @param nproc the new number concurrent processes
 	 */
-	public void setNumberConcurrentProcesses(int nproc){
-		this.simultaneousprocesses=nproc;
+	public void setNumberConcurrentProcesses(Integer nproc){
+		if(nproc!=null)
+			this.simultaneousprocesses=nproc;
 	}
+	
+	
+	public void setMapOfRuns(LinkedHashMap<AbstractBiclusteringAlgorithmCaller, Integer> map) {
+		runmap=map;
+	}
+	
 	
 	/**
 	 * Gets the list processes to run.
@@ -72,6 +83,12 @@ public abstract class AbstractBiclusteringProcessCLIControlCenter extends Abstra
 	 */
 	public void execute() throws Exception{
 		ArrayList<Runnable> processes=getListProcessesToRun();
+		if(simultaneousprocesses==null && props!=null) {
+			if(props.containsKey(PropertyLabels.SIMULTANEOUSPROCESSES))
+				simultaneousprocesses=(Integer) props.get(PropertyLabels.SIMULTANEOUSPROCESSES);
+			else
+				simultaneousprocesses=1;
+		}
 		MTUMultiThreadRunneableExecutor.execute(processes, simultaneousprocesses);	
 	}
 	

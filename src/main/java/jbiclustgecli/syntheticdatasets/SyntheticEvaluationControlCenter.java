@@ -31,7 +31,8 @@ import org.apache.commons.io.FilenameUtils;
 
 import jbiclustge.methods.algorithms.AbstractBiclusteringAlgorithmCaller;
 import jbiclustge.propertiesmodules.PropertiesModules;
-import jbiclustge.utils.properties.AlgorithmProperties;
+import jbiclustge.propertiesmodules.PropertyLabels;
+import jbiclustge.utils.props.AlgorithmProperties;
 import jbiclustgecli.syntheticdatasets.components.DatasetPropertyRunInfoContainer;
 import jbiclustgecli.syntheticdatasets.executors.MultiThreadEvaluationByMethodExecutorRuntimeLoadData;
 import jbiclustgecli.syntheticdatasets.executors.MultiThreadEvaluationExecutorRuntimeLoadData;
@@ -156,7 +157,7 @@ public class SyntheticEvaluationControlCenter {
   	 * Load properties.
   	 */
   	private void loadProperties() {
-		  simultaneousprocesses=Integer.parseInt(props.getProperty(PropertiesModules.SIMULTANEOUSPROCESSES));
+		  simultaneousprocesses=Integer.parseInt(props.getProperty(PropertyLabels.SIMULTANEOUSPROCESSES));
 		  if(props.containsKey("analysis_by_method")) {
 			  String option=props.getProperty("analysis_by_method");
 			  if(option.toLowerCase().equals("true"))

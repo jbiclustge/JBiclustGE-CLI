@@ -33,7 +33,7 @@ import jbiclustge.methods.algorithms.r.RBiclustAlgorithmCaller;
 import jbiclustge.propertiesmodules.readers.ConcurrentProcessesModuleloader;
 import jbiclustge.propertiesmodules.readers.ExpressionDatasetModuleLoader;
 import jbiclustge.propertiesmodules.templates.RunMethodsTemplates;
-import jbiclustge.utils.properties.AlgorithmProperties;
+import jbiclustge.utils.props.AlgorithmProperties;
 import jbiclustgecli.processcontrolcenters.biclustermethods.BiclusteringMethodsExecutionControlCenter;
 import pt.ornrocha.fileutils.MTUDirUtils;
 import pt.ornrocha.logutils.messagecomponents.LogMessageCenter;

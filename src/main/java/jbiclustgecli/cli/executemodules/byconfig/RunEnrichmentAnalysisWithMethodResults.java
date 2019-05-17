@@ -31,13 +31,13 @@ import org.apache.commons.io.FilenameUtils;
 import jbiclustge.datatools.expressiondata.dataset.ExpressionData;
 import jbiclustge.enrichmentanalysistools.common.EnrichmentAnalyserProcessor;
 import jbiclustge.enrichmentanalysistools.common.EnrichmentAnalysisResultList;
-import jbiclustge.propertiesmodules.PropertiesModules;
+import jbiclustge.propertiesmodules.PropertyLabels;
 import jbiclustge.propertiesmodules.readers.ExpressionDatasetModuleLoader;
 import jbiclustge.propertiesmodules.readers.GSEAModuleLoader;
 import jbiclustge.reporters.BiclusteringGSEATaskCSVReporter;
 import jbiclustge.results.biclusters.BiclusterOutputFormat;
 import jbiclustge.results.biclusters.containers.BiclusterList;
-import jbiclustge.utils.properties.AlgorithmProperties;
+import jbiclustge.utils.props.AlgorithmProperties;
 import jbiclustgecli.cli.executemodules.CommandLineExecuter;
 import pt.ornrocha.fileutils.MTUDirUtils;
 import pt.ornrocha.logutils.MTULogLevel;
@@ -100,7 +100,7 @@ public class RunEnrichmentAnalysisWithMethodResults extends CommandLineExecuter{
 
 		
 		
-		String mainfolder=props.getProperty(PropertiesModules.ANALYSERESULTINFOLDER);
+		String mainfolder=props.getProperty(PropertyLabels.ANALYSERESULTINFOLDER);
 	
 		if(mainfolder==null || mainfolder.isEmpty())
 			return false;
@@ -152,7 +152,7 @@ public class RunEnrichmentAnalysisWithMethodResults extends CommandLineExecuter{
 			}
 			System.out.println(filestoanalyse);
 			if(filestoanalyse.size()>0){
-				
+				System.out.println(props);
 				GSEAModuleLoader loadgseaprops=GSEAModuleLoader.load(props);
 				gseaprocessor=loadgseaprops.getGseaprocessor();
 				pvalues=loadgseaprops.getPvalues();
@@ -205,8 +205,8 @@ public class RunEnrichmentAnalysisWithMethodResults extends CommandLineExecuter{
 		if(gseaprocessor!=null){
 			
 		  String mainsavedir=null;
-		  if(props.containsKey(PropertiesModules.OUTPUTDIRECTORY) && !props.getProperty(PropertiesModules.OUTPUTDIRECTORY).isEmpty())
-			  mainsavedir=props.getProperty(PropertiesModules.OUTPUTDIRECTORY);
+		  if(props.containsKey(PropertyLabels.OUTPUTDIRECTORY) && !props.getProperty(PropertyLabels.OUTPUTDIRECTORY).isEmpty())
+			  mainsavedir=props.getProperty(PropertyLabels.OUTPUTDIRECTORY);
 			
 			
 		  for (int i = 0; i < listofresults.size(); i++) {
@@ -273,6 +273,13 @@ public class RunEnrichmentAnalysisWithMethodResults extends CommandLineExecuter{
 	public boolean needsToCloseRsession() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+
+	@Override
+	public String getBiclusteringResultsFolder() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

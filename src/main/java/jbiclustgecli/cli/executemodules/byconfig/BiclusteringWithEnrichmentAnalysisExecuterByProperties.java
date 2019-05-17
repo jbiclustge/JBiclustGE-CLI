@@ -41,6 +41,7 @@ import jbiclustge.enrichmentanalysistools.topgo.components.TopGoPropertiesContai
 import jbiclustge.execution.controlcenters.BiclusteringWithGeneEnrichmentAnalysisControlCenter;
 import jbiclustge.methods.algorithms.BiclusteringMethod;
 import jbiclustge.propertiesmodules.PropertiesModules;
+import jbiclustge.propertiesmodules.PropertyLabels;
 import jbiclustge.propertiesmodules.readers.ExpressionDatasetModuleLoader;
 import jbiclustge.reporters.BiclusteringGSEAReporterType;
 import jbiclustge.results.biclusters.BiclusteringUtils;
@@ -192,14 +193,14 @@ public class BiclusteringWithEnrichmentAnalysisExecuterByProperties extends Comm
 	private void loadBiclusteringMethods(){
 		
 		for (BiclusteringMethod method : BiclusteringMethod.values()) {
-			String methodname=method.getName();
-			String key=methodname+PropertiesModules.EXECUTETAG;
+			String methodname=method.getAlgorithmID();
+			String key=methodname+PropertyLabels.EXECUTETAG;
 			if(props.containsKey(key)){
 				boolean use=PropertiesUtilities.getBooleanPropertyValue(props, key, false, getClass());
 				if(use){
-					int priorityvalue=PropertiesUtilities.getIntegerPropertyValue(props, (methodname+PropertiesModules.PRIORITYTAG), 1, getClass());
-					String configurationfile=PropertiesUtilities.getStringPropertyValue(props, (methodname+PropertiesModules.CONFIGURATIONFILETAG), null, getClass());
-					int numberruns=PropertiesUtilities.getIntegerPropertyValue(props, (methodname+PropertiesModules.NUMBERRUNSTAG), 1, getClass());
+					int priorityvalue=PropertiesUtilities.getIntegerPropertyValue(props, (methodname+PropertyLabels.PRIORITYTAG), 1, getClass());
+					String configurationfile=PropertiesUtilities.getStringPropertyValue(props, (methodname+PropertyLabels.CONFIGURATIONFILETAG), null, getClass());
+					int numberruns=PropertiesUtilities.getIntegerPropertyValue(props, (methodname+PropertyLabels.NUMBERRUNSTAG), 1, getClass());
 					appendMethodToPriorityFile(method, configurationfile, priorityvalue, numberruns);
 					
 				}	
@@ -238,9 +239,9 @@ public class BiclusteringWithEnrichmentAnalysisExecuterByProperties extends Comm
 	 */
 	private void configureEnrichmentAnalyser() throws FileNotFoundException, IOException{
 		
-		if(props.containsKey(PropertiesModules.GSEAPROCESSOR) && !props.getProperty(PropertiesModules.GSEAPROCESSOR).isEmpty()){
+		if(props.containsKey(PropertyLabels.GSEAPROCESSOR) && !props.getProperty(PropertyLabels.GSEAPROCESSOR).isEmpty()){
 		
-			String processorname=PropertiesUtilities.getStringPropertyValue(props, PropertiesModules.GSEAPROCESSOR, "ontologizer", getClass());
+			String processorname=PropertiesUtilities.getStringPropertyValue(props, PropertyLabels.GSEAPROCESSOR, "ontologizer", getClass());
 		
 			if(processorname.toLowerCase().equals("ontologizer") || processorname.toLowerCase().equals("topgo")){
 			
@@ -250,7 +251,7 @@ public class BiclusteringWithEnrichmentAnalysisExecuterByProperties extends Comm
 					enrichmentanalyser=new OntologizerEnrichmentAnalyser();
 			
 			
-				String gseaconfigurationfile=PropertiesUtilities.getStringPropertyValue(props, PropertiesModules.GSEACONFIGURATIONFILE, null, getClass());
+				String gseaconfigurationfile=PropertiesUtilities.getStringPropertyValue(props, PropertyLabels.GSEACONFIGURATIONFILE, null, getClass());
 				if(gseaconfigurationfile!=null)
 					enrichmentanalyser.setProperties(PropertiesUtilities.loadFileProperties(gseaconfigurationfile));
 				else
@@ -270,7 +271,7 @@ public class BiclusteringWithEnrichmentAnalysisExecuterByProperties extends Comm
 	 */
 	private void setPvalues(){
 		
-		String usepvalues=PropertiesUtilities.getStringPropertyValue(props, PropertiesModules.GSEAOUTPVALUES, null, getClass());
+		String usepvalues=PropertiesUtilities.getStringPropertyValue(props, PropertyLabels.GSEAOUTPVALUES, null, getClass());
 		
 		if(usepvalues!=null){
 			pvalues=new ArrayList<>();
@@ -292,7 +293,7 @@ public class BiclusteringWithEnrichmentAnalysisExecuterByProperties extends Comm
 				}
 			}
 			
-			useadjustedpvalues=PropertiesUtilities.getBooleanPropertyValue(props, PropertiesModules.GSEAUSEADJUSTEDPVALUES, false, getClass());
+			useadjustedpvalues=PropertiesUtilities.getBooleanPropertyValue(props, PropertyLabels.GSEAUSEADJUSTEDPVALUES, false, getClass());
 			
 	
 		}
@@ -303,8 +304,8 @@ public class BiclusteringWithEnrichmentAnalysisExecuterByProperties extends Comm
 	 */
 	private void setupReporter(){
 		
-		String reporttype=PropertiesUtilities.getStringPropertyValue(props, PropertiesModules.REPORTFORMAT, "csv", getClass());
-		outputdir=PropertiesUtilities.getStringPropertyValue(props, PropertiesModules.OUTPUTDIRECTORY, null, getClass());
+		String reporttype=PropertiesUtilities.getStringPropertyValue(props, PropertyLabels.REPORTFORMAT, "csv", getClass());
+		outputdir=PropertiesUtilities.getStringPropertyValue(props, PropertyLabels.OUTPUTDIRECTORY, null, getClass());
 		if(outputdir!=null){
 			typereport=BiclusteringGSEAReporterType.getReporterTypeFromString(reporttype);
 		}
@@ -316,7 +317,7 @@ public class BiclusteringWithEnrichmentAnalysisExecuterByProperties extends Comm
 	 * @return the concurrent processes
 	 */
 	private void getConcurrentProcesses(){
-		numberprocesses=PropertiesUtilities.getIntegerPropertyValue(props, PropertiesModules.SIMULTANEOUSPROCESSES, 1, getClass());
+		numberprocesses=PropertiesUtilities.getIntegerPropertyValue(props, PropertyLabels.SIMULTANEOUSPROCESSES, 1, getClass());
 	}
 	
 	
@@ -486,6 +487,12 @@ public class BiclusteringWithEnrichmentAnalysisExecuterByProperties extends Comm
 	public boolean needsToCloseRsession() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public String getBiclusteringResultsFolder() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 

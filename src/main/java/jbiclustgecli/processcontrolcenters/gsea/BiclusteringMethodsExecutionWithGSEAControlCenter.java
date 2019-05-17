@@ -72,21 +72,21 @@ public class BiclusteringMethodsExecutionWithGSEAControlCenter extends Bicluster
 	protected ArrayList<Runnable> getListProcessesToRun() {
 		ArrayList<Runnable> methodtasks=new ArrayList<>();
 		
+
 		for (int i = 0; i < biclustmethods.size(); i++) {
 			
 			BiclusteringMethodRunTask runmethod=null;
 			
+			Integer numberprocs=null;
+			if(runmap!=null && runmap.containsKey(biclustmethods.get(i)))
+				numberprocs=runmap.get(biclustmethods.get(i));
+			
 			if(infogsea==null)
-				runmethod=new BiclusteringMethodRunTask(biclustmethods.get(i), saveresultsindir);
+				runmethod=new BiclusteringMethodRunTask(biclustmethods.get(i), getFolderOfResults(i),numberprocs);
 			else
-				runmethod=new BiclusteringMethodRunWithGSEATask(biclustmethods.get(i),infogsea, saveresultsindir);
+				runmethod=new BiclusteringMethodRunWithGSEATask(biclustmethods.get(i),infogsea, getFolderOfResults(i),numberprocs);
 			
-			
-			if(saveheatmaps)
-				runmethod.saveHeatmaps();
-			if(saveparallelcoord)
-				runmethod.saveParallelCoordinates();
-			
+			runmethod.setProperties(props);
 			methodtasks.add(runmethod);
 		}
 		return methodtasks;

@@ -37,16 +37,22 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FilenameUtils;
+import org.javatuples.Pair;
+import org.zeroturnaround.zip.ZipUtil;
 
 import jbiclustge.enrichmentanalysistools.ontologizer.components.OntologizerPropertiesContainer;
 import jbiclustge.enrichmentanalysistools.topgo.components.TopGoPropertiesContainer;
 import jbiclustge.methods.algorithms.BiclusteringMethod;
 import jbiclustge.propertiesmodules.PropertiesModules;
+import jbiclustge.propertiesmodules.PropertyLabels;
 import jbiclustge.propertiesmodules.templates.GSEATemplates;
 import jbiclustge.results.biclusters.BiclusteringUtils;
+import jbiclustge.utils.osystem.CustomRInstallationManager;
+import jbiclustge.utils.osystem.CustomRInstallationManager.RenvVersion;
 import jbiclustge.utils.osystem.JBiclustGESetupManager;
 import jbiclustge.utils.osystem.SystemFolderTools;
-import jbiclustge.utils.properties.AlgorithmProperties;
+import jbiclustge.utils.props.AlgorithmProperties;
+import jbiclustge.utils.props.JBiGePropertiesManager;
 import jbiclustgecli.cli.executemodules.byconfig.RunEnrichmentAnalysisWithMethodResults;
 import jbiclustgecli.cli.executemodules.byfolder.RunBiclusteringMethodsByProfileFolder;
 import jbiclustgecli.syntheticdatasets.SyntheticEvaluationControlCenter;
@@ -89,25 +95,47 @@ public class CommandLineInterface {
 	 */
 	private void setupInputOptions(){
 		options=new Options();
-		
+
 		Option help= Option.builder("h").hasArg(false).longOpt("help").build();
 		options.addOption(help);
-		
+
 		Option initconf=Option.builder("conf")
 				.numberOfArgs(1)
 				.optionalArg(true)
 				.argName("folder path (optional)")
-				.desc("Makes initial configuration of biclustering methods. All necessary dependencies of R will can be installed in a folder defined by the user [set folder path after \"conf\" argument, or set \"choosefolder\" to open a help dialog]. If the folder is not set, all dependencies of R will be installed in a folder defined by JBiclustGE.\n")
+				.desc("Makes the initial configuration of the biclustering methods. All the necessary dependencies of R  can be installed in a folder defined by the user [set the folder path after \"conf\" argument, or set \"choosefolder\" to open a help dialog]. If the folder is not set, all the dependencies of R will be installed in a folder defined by JBiclustGE.\n")
 				.longOpt("configure")
 				.build();
 		options.addOption(initconf);
-		
+
+		if(OSystemUtils.isLinux()) {
+			Option Rconf=Option.builder("Rconf")
+					.numberOfArgs(1)
+					.optionalArg(true)
+					.argName("R version (optional), value = 3.4.1 | 3.4.3 | 3.4.4, default=3.4.3")
+					.desc("Install a custom R environment only for JBiclustGE-CLI. NOTE: this must be configured simultaneously with the option \"conf\", otherwise this parameter will not work.\n")
+					.longOpt("configure_R")
+					.build();
+			options.addOption(Rconf);
+			
+			Option Rconfproc=Option.builder("Rconf_nproc")
+					.numberOfArgs(1)
+					.optionalArg(false)
+					.argName("integer\n")
+					.desc("Number of processes that can be compiled simultaneously,  default=2\n")
+					.longOpt("compile_number_processes")
+					.build();
+			options.addOption(Rconfproc);
+			
+			
+		}
+
 		Option newprofile=Option.builder("newprofile")
-				.desc("Interactive interface to create files to perform biclustering analysis.")
+				.desc("Interactive interface to create files to perform the biclustering analysis.")
 				.longOpt("new_profile")
 				.build();
 		options.addOption(newprofile);
-		
+
 		Option runbicprofile=Option.builder("run")
 				.numberOfArgs(1)
 				.hasArg(true)
@@ -116,13 +144,13 @@ public class CommandLineInterface {
 				.longOpt("run_profile")
 				.build();
 		options.addOption(runbicprofile);
-	
+
 		Option newgseaprofile=Option.builder("newgsea")
 				.desc("Create template files to perform the Gene Set Enrichment Analysis.")
 				.longOpt("new_gsea_analysis")
 				.build();
 		options.addOption(newgseaprofile);
-		
+
 		Option rungseaprofile=Option.builder("rungsea")
 				.numberOfArgs(1)
 				.hasArg(true)
@@ -131,13 +159,13 @@ public class CommandLineInterface {
 				.longOpt("run_gsea")
 				.build();
 		options.addOption(rungseaprofile);
-		
+
 		Option newsyntheticprofile=Option.builder("configsynthetic")
-				.desc("Create a configuration to perform the analysis of synthetic datasets.")
+				.desc("Create a configuration to perform the analysis of the synthetic datasets.")
 				.longOpt("configure_synthetic_dataset_analysis")
 				.build();
 		options.addOption(newsyntheticprofile);
-		
+
 		Option runsyntheticexperiments=Option.builder("runsynthetic")
 				.numberOfArgs(1)
 				.hasArg(true)
@@ -146,9 +174,9 @@ public class CommandLineInterface {
 				.longOpt("run_synthetic_experiments")
 				.build();
 		options.addOption(runsyntheticexperiments);
-		
-		
-		
+
+
+
 		Option verbosity=Option.builder("v")
 				.argName("option")
 				.numberOfArgs(1)
@@ -157,23 +185,27 @@ public class CommandLineInterface {
 				.longOpt("verbosity")
 				.build();
 		options.addOption(verbosity);
+
 		
-	/*	Option logfile   = OptionBuilder.withArgName( "file" )
+		Option compress=Option.builder("z")
+				.hasArg(false)
+				.desc("Compress results and analysed data to a zip file")
+				.longOpt("zip")
+				.build();
+		options.addOption(compress);
+		
+		/*	Option logfile   = OptionBuilder.withArgName( "file" )
                 .hasArg()
                 .withDescription(  "use given file for log" )
-                .create( "logfile" );
-		
+                .create( "logfile" );*/
+
+
 
 		
-		Option compressresults=OptionBuilder
-				.withDescription("Compress results to a zip file")
-				.withLongOpt("compress")
-				.create("z");
-		options.addOption(compressresults);*/
-		
 
-		
-		
+
+
+
 	}
 	
 	/**
@@ -185,16 +217,16 @@ public class CommandLineInterface {
 		try {
 			CommandLineParser parser = new DefaultParser();
 			CommandLine cmd= parser.parse(options,inputargs);
-			
+
 			LogMessageCenter.getLogger().enableStackTrace();
-			
+
 			if(cmd.getOptions().length==0)
 				help();
 			else if (cmd.hasOption("h"))
 				help();
-			
+
 			else{
-				
+
 				if(cmd.hasOption("v")){
 					String param=cmd.getOptionValue("v");
 					MTULogLevel level=MTULogLevel.getLevelFromStringName(param);
@@ -202,13 +234,90 @@ public class CommandLineInterface {
 				}
 				else
 					LogMessageCenter.getLogger().setLogLevel(MTULogLevel.INFO);
-				
-				
+
+
 				if(cmd.hasOption("conf")){
 					String[] args=cmd.getOptionValues("conf");
-					
-					if(JBiclustGESetupManager.isJbiclustGEConfigured())
-							JBiclustGESetupManager.resetPreviousConfiguration();
+
+					String RHome=null;
+
+
+					if(cmd.hasOption("Rconf")) {
+						String version=cmd.getOptionValue("Rconf");
+
+						int nprocs=0;
+
+						if(cmd.hasOption("Rconf_nproc")) {
+							String nproc=cmd.getOptionValue("Rconf_nproc");
+							if(nproc!=null && !nproc.isEmpty())
+								try {
+									nprocs=Integer.parseInt(nproc);
+								} catch (Exception e) {
+									nprocs=0;
+								}
+						}
+
+						CustomRInstallationManager installer=null;
+
+						boolean installR=true;
+
+						ArrayList<Pair<RenvVersion, String>> currentcustomversion=CustomRInstallationManager.checkIfAnyCustomVersionItsInstalled();
+						if(currentcustomversion!=null) {
+
+							RenvVersion inputversion=RenvVersion.R_3_4_3;
+							if(version!=null && !version.isEmpty()) {
+								inputversion=RenvVersion.getREnvVersionFromString(version);
+							}
+
+							for (Pair<RenvVersion, String> pair : currentcustomversion) {
+								RenvVersion installedversion=pair.getValue0();
+								if(installedversion.equals(inputversion)) {
+									installR=false;
+									RHome=pair.getValue1();
+									break;
+								}
+							}
+
+
+
+						}
+
+
+						if(installR) {	
+
+							if(version!=null && !version.isEmpty()) {
+								RenvVersion rversion=RenvVersion.getREnvVersionFromString(version);
+								if(nprocs>0)
+									installer=new CustomRInstallationManager(rversion,nprocs).X11NotSupported(true);
+								else
+									installer=new CustomRInstallationManager(rversion).X11NotSupported(true);
+							}
+							else {
+								if(nprocs>0)
+									installer=new CustomRInstallationManager(nprocs).X11NotSupported(true);
+								else
+									installer=new CustomRInstallationManager().X11NotSupported(true);
+							}
+
+							boolean state=installer.install();
+							if(state)
+								RHome=installer.getR_Path();
+						}
+
+					}
+
+					if(JBiclustGESetupManager.isJbiclustGEConfigured()) {
+
+						String checkrpath=(String) JBiGePropertiesManager.getManager().getKeyValue(PropertyLabels.RUSERPATH);
+						if(checkrpath!=null && RHome==null) {
+							if(new File(checkrpath).exists()) {
+								RHome=checkrpath;
+							}
+						}
+						JBiclustGESetupManager.resetPreviousConfiguration();
+					}
+
+
 
 					if(args!=null && args.length==1) {
 						String folder=null;
@@ -224,51 +333,50 @@ public class CommandLineInterface {
 						}
 						else
 							folder=args[0];
-						
-						JBiclustGESetupManager.setupJBiclustGEMethodsEnvironment(folder);
-						
+
+						JBiclustGESetupManager.setupJBiclustGEMethodsEnvironment(folder,RHome);
+
 					}
 					else
-						JBiclustGESetupManager.setupJBiclustGEMethodsEnvironment(null);
-					
+						JBiclustGESetupManager.setupJBiclustGEMethodsEnvironment(null,RHome);
+
 				}
-				
 				else if(cmd.hasOption("newprofile")){
-				
+
 					Scanner scanner = new Scanner(System.in);
-					
-				
-                    String dirpath=folderSelectionWithOptionalJFileChooser("Please, set the path of directory where the Profile will be saved: ", scanner);
-                    File f=new File(dirpath);
-                    if(!f.exists())
-                    	f.mkdirs();
-				
-					
-			
+
+
+					String dirpath=folderSelectionWithOptionalJFileChooser("Please, set the path of directory where the Profile will be saved: ", scanner);
+					File f=new File(dirpath);
+					if(!f.exists())
+						f.mkdirs();
+
+
+
 					EnhancedPropertiesWithSubGroups allprops=new EnhancedPropertiesWithSubGroups();
 					allprops.appendProperties(getGeneExpressionFileProperties(scanner,dirpath));
 					allprops.appendProperties(getBiclusteringMethodsProperties(scanner,dirpath,true));
-					
+
 					System.out.println("Do you want to perform the Gene Enrichment Analysis in Runtime [yes/y]; No I will perform later [no/n]:");
 					if(checkYesNoParameter(scanner)){
 						allprops.appendProperties(checkGSEATemplateProperties(scanner, dirpath,false));
-						
+
 						System.out.println("You want to define a folder to store Enrichment results? (otherwise will be saved in the same folder of the bicluster files) [yes/no (y/n)]:");
 						if(checkYesNoParameter(scanner)){
-					
+
 							String gseadirpath=folderSelectionWithOptionalJFileChooser("Please set the folder path, where the Enrichment results will be stored: ", scanner);
-							allprops.addPropertyToGroupCategory("Report Results",PropertiesModules.OUTPUTDIRECTORY, gseadirpath, "Directory where results will be stored");
+							allprops.addPropertyToGroupCategory("Report Results",PropertyLabels.OUTPUTDIRECTORY, gseadirpath, "Directory where results will be stored");
 						}
 
 					}
-					
+
 					EnhancedPropertiesWithSubGroups extraoptions=getExtraProperties(scanner);
 					if(extraoptions!=null)
 						allprops.appendProperties(extraoptions);
-					
-					String filepath=FilenameUtils.concat(dirpath, PropertiesModules.PROFILEFILENAME);
+
+					String filepath=FilenameUtils.concat(dirpath, PropertyLabels.PROFILEFILENAME);
 					allprops.store(new FileWriter(filepath), true);
-				
+
 					StringBuilder strmsg=new StringBuilder();
 					strmsg.append("Your configuration files are ready to execute, to run this configuration in shell, do the following: ");
 					if(OSystemUtils.isLinux()) {
@@ -284,13 +392,13 @@ public class CommandLineInterface {
 					}
 					else
 						strmsg.append("java -jar jbiclustge-cli.jar "+dirpath);
-	
-				   System.out.println(strmsg.toString());
+
+					System.out.println(strmsg.toString());
 				}
 
 				else if(cmd.hasOption("run")){
 					String filepath=cmd.getOptionValue("run");
-					
+
 					if(filepath.toLowerCase().equals("choosefolder")) {
 						JFileChooser chooser=new JFileChooser();
 						chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -301,33 +409,51 @@ public class CommandLineInterface {
 						else
 							System.exit(0);
 					}
-					
+
 					if(filepath!=null && !filepath.isEmpty()){
+						
+						if(OSystemUtils.isLinux()) {
+							String rcustom=(String) JBiGePropertiesManager.getManager().getKeyValue(PropertyLabels.RUSERPATH);
+							if(rcustom!=null) {
+								OSystemUtils.setEnvVariable("R_HOME", rcustom);
+								System.out.println("Using custom R_HOME environment: "+rcustom);
+							}
+							else
+								System.out.println("Using System R_HOME environment");
+						}
+						
 						RunBiclusteringMethodsByProfileFolder exe=new RunBiclusteringMethodsByProfileFolder(OSystemUtils.validatePath(filepath));
 						exe.execute();
 						if(exe.needsToCloseRsession()) {
 							RConnector.closeSession();
 						}
+						
+						System.out.println("The execution of the biclustering methods was finished");
+						if(cmd.hasOption("z")){
+							String parentpath=new File(filepath).getParent();
+						    String basename=FilenameUtils.getBaseName(filepath);
+							ZipUtil.pack(new File(filepath), new File(FilenameUtils.concat(parentpath, basename+"_results.zip")));
+						}
 					}
 					else
 						System.out.println("Incorrect number of input parameters");
-						
+
 				}
 
 				else if(cmd.hasOption("newgsea")){
-					
+
 					Scanner scannergsea = new Scanner(System.in);
-					
+
 
 					String input="";
 					String msg="Please, set the path of directory where the configuration will be saved.";
 					String dirpath=folderSelectionWithOptionalJFileChooser(msg, scannergsea);
-					
+
 					EnhancedPropertiesWithSubGroups allprops=new EnhancedPropertiesWithSubGroups();
-					
+
 					System.out.println("You want to choose input parameters now [yes/y]; No, I will edit configuration file later [no/n]");
 					if(checkYesNoParameter(scannergsea)){
-						
+
 						System.out.println("Where the results are stored? In a folder of a profile that was executed [yes/y]. In other folder [no/n]");
 						String dirres=null;
 						if(checkYesNoParameter(scannergsea)) {
@@ -337,18 +463,18 @@ public class CommandLineInterface {
 						else {
 							dirres=folderSelectionWithOptionalJFileChooser("Please set the path of the folder where the results are stored: ", scannergsea);
 						}
-			
-						allprops.addPropertyToGroupCategory("Folder of results",PropertiesModules.ANALYSERESULTINFOLDER ,  OSystemUtils.validatePath(dirres), "Directory where results are stored");
-						
+
+						allprops.addPropertyToGroupCategory("Folder of results",PropertyLabels.ANALYSERESULTINFOLDER ,  OSystemUtils.validatePath(dirres), "Directory where results are stored");
+
 						String filegeneexp=fileSelectionWithOptionalOpenJFileChooser("Please set the file path of the gene expression dataset, used in the biclustering analysis: ", scannergsea);
-						
-						allprops.addPropertyToGroupCategory("Gene Expression Dataset to Analyse", PropertiesModules.INPUTDATASETFILEPATH,  OSystemUtils.validatePath(filegeneexp), "");
+
+						allprops.addPropertyToGroupCategory("Gene Expression Dataset to Analyse", PropertyLabels.INPUTDATASETFILEPATH,  OSystemUtils.validatePath(filegeneexp), "");
 					}
 					else{
 						allprops.appendProperties(PropertiesModules.getFilesFolderToGSEAAnalysis());
 						allprops.appendProperties(PropertiesModules.getInputExpressionDatasetFileModule());
 					}
-					
+
 					EnhancedPropertiesWithSubGroups gseainitprops=checkGSEATemplateProperties(scannergsea, dirpath,true);
 					allprops.appendProperties(gseainitprops);
 					System.out.println("You want to define a folder to store Enrichment results? (otherwise will be saved in the same folder of the bicluster files) [yes/no]:");
@@ -356,27 +482,27 @@ public class CommandLineInterface {
 						System.out.println("Define folder now [yes/y]; I will define later in configuration file [no/n] ");
 						if(checkYesNoParameter(scannergsea)) {
 							String folderpath=folderSelectionWithOptionalJFileChooser("Set the folder to store Enrichment results.", scannergsea);
-							allprops.addPropertyToGroupCategory("Report Results",PropertiesModules.OUTPUTDIRECTORY, folderpath, "Directory where results will be stored");
+							allprops.addPropertyToGroupCategory("Report Results",PropertyLabels.OUTPUTDIRECTORY, folderpath, "Directory where results will be stored");
 						}
 						else
 							allprops.appendProperties(PropertiesModules.getResultsReporterModule());
 					}
 
-					
-					
+
+
 					String name="Biclustering_GSEA_Ontologizer_Profile.conf";
-					if(gseainitprops.getProperty(PropertiesModules.GSEAPROCESSOR).equals("topgo"))
+					if(gseainitprops.getProperty(PropertyLabels.GSEAPROCESSOR).equals("topgo"))
 						name="Biclustering_GSEA_topGO_Profile.conf";
-					
+
 					String filepath=FilenameUtils.concat(dirpath, name);
 					allprops.store(new FileWriter(filepath), true);
-					
-			        LogMessageCenter.getLogger().addInfoMessage("Gene set Enrichment Analysis was stored at: "+filepath);
+
+					LogMessageCenter.getLogger().addInfoMessage("Gene set Enrichment Analysis was stored at: "+filepath);
 				}
-				
-				
+
+
 				else if(cmd.hasOption("rungsea")){
-				
+
 					String filepath=cmd.getOptionValue("rungsea");
 
 					System.out.println(filepath);
@@ -389,44 +515,44 @@ public class CommandLineInterface {
 						else
 							System.exit(0);
 					}
-					
+
 					if(filepath!=null && !filepath.isEmpty()){
-					RunEnrichmentAnalysisWithMethodResults exe=new RunEnrichmentAnalysisWithMethodResults(OSystemUtils.validatePath(filepath));	
+						RunEnrichmentAnalysisWithMethodResults exe=new RunEnrichmentAnalysisWithMethodResults(OSystemUtils.validatePath(filepath));	
 						exe.execute();
 						System.out.println("Gene Enrichment Analysis was finished");
 					}
-						
+
 				}
 				else if(cmd.hasOption("configsynthetic")) {
-					
+
 					Scanner scanner = new Scanner(System.in);
-					
+
 					String folderdatasets=folderSelectionWithOptionalJFileChooser("Please, set the path where the synthetic datasets are stored", scanner);
-					
+
 					EnhancedPropertiesWithSubGroups allprops=new EnhancedPropertiesWithSubGroups();
-					
+
 					allprops.appendProperties(getBiclusteringMethodsProperties(scanner,folderdatasets,false));
-					
-					
+
+
 					System.out.println("Execute synthetic analysis by each Biclustering method [yes/y] or execute randomly [no/n]:");
-					
+
 					boolean option=checkYesNoParameter(scanner);
-					
+
 					allprops.addPropertyToGroupCategory("Execute analysis by each Biclustering method", "analysis_by_method", String.valueOf(option), "Allowed options: false or true");
-					
-					
-					
-					
-					
+
+
+
+
+
 					String configpath=FilenameUtils.concat(folderdatasets, "synthetic_run_config.conf");
 					allprops.store(new FileWriter(configpath), true);
-					
-					
+
+
 				}
 				else if(cmd.hasOption("runsynthetic")) {
-					
+
 					String folderdatasets=cmd.getOptionValue("runsynthetic");
-					
+
 					if(folderdatasets.toLowerCase().equals("choosefolder")) {
 						JFileChooser chooser=new JFileChooser();
 						chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -437,29 +563,29 @@ public class CommandLineInterface {
 						else
 							System.exit(0);
 					}
-					
+
 					if(folderdatasets!=null && !folderdatasets.isEmpty()) {
-						
-						
+
+
 						boolean isvalid=isValidToExecuteSyntheticDatasets(folderdatasets);
 						if(isvalid) {
 							SyntheticEvaluationControlCenter cc=new SyntheticEvaluationControlCenter(folderdatasets);
 							cc.run();
-								
+
 						}	
 					}
-					
+
 				}
-	
+
 			}
 
-	
-			
+
+
 		} catch (ParseException e) {
 			System.out.println(e);
 			help();
 		}
-		
+
 	}
 	
 	
@@ -624,7 +750,7 @@ public class CommandLineInterface {
 					break;
 				case 2:	
 					methodname="KMeansImputation";
-					methodtag=PropertiesModules.KMeansImputation;
+					methodtag=PropertyLabels.KMeansImputation;
 					System.out.println("Number of clusters: ");
 					int nc=scanner.nextInt();
 					methodsettings=String.valueOf(nc+";");
@@ -634,21 +760,21 @@ public class CommandLineInterface {
 					break;
 				case 3:	
 					methodname="KNNImputation";
-					methodtag=PropertiesModules.KNNImputation;
+					methodtag=PropertyLabels.KNNImputation;
 					System.out.println("number of neighbors used for imputation: ");
 					int nn=scanner.nextInt();
 					methodsettings=String.valueOf(nn);
 					break;
 				case 4:	
 					methodname="LLSImputation";
-					methodtag=PropertiesModules.LLSImputation;
+					methodtag=PropertyLabels.LLSImputation;
 					System.out.println("number of nearest neighbors used for imputation: ");
 					int nei=scanner.nextInt();
 					methodsettings=String.valueOf(nei);	
 					break;
 				case 5:	
 					methodname="SVDImputation";
-					methodtag=PropertiesModules.SVDImputation;
+					methodtag=PropertyLabels.SVDImputation;
 					System.out.println("number of of eigenvectors used for imputation: ");
 					int nev=scanner.nextInt();
 					methodsettings=String.valueOf(nev);	
@@ -661,12 +787,12 @@ public class CommandLineInterface {
 				}
 				
 				if(methodname!=null){
-					data.addPropertyToSubGroupCategory("Data configuration", "Missing Value Imputation", PropertiesModules.MISSINGDATAIMPUTATIONMETHOD, methodname, "");
+					data.addPropertyToSubGroupCategory("Data configuration", "Missing Value Imputation", PropertyLabels.MISSINGDATAIMPUTATIONMETHOD, methodname, "");
 					if(methodtag!=null && methodsettings!=null)
 						data.addPropertyToSubGroupCategory("Data configuration", "Imputation parameters", methodtag, methodsettings,"");
 				}
 				else
-					data.addPropertyToSubGroupCategory("Data configuration", "Missing Value Imputation", PropertiesModules.MISSINGDATAIMPUTATIONMETHOD, "None", "");
+					data.addPropertyToSubGroupCategory("Data configuration", "Missing Value Imputation", PropertyLabels.MISSINGDATAIMPUTATIONMETHOD, "None", "");
 			}
 			else{
 				data.appendProperties(PropertiesModules.getInputExpressionDatasetFileModuleWithMissingvaluesImputation());
@@ -693,7 +819,7 @@ public class CommandLineInterface {
 
 		System.out.println("Do you want to choose the biclustering methods? [yes/y]; Setup all, I will choose later [no/n] ");
 
-		String dirmethods=FilenameUtils.concat(dir, PropertiesModules.ALGORITHMSCONFFOLDERNAME);
+		String dirmethods=FilenameUtils.concat(dir, PropertyLabels.ALGORITHMSCONFFOLDERNAME);
 		MTUDirUtils.checkandsetDirectory(dirmethods);
 
 		ArrayList<BiclusteringMethod> methodsselected=new ArrayList<>();
@@ -723,7 +849,7 @@ public class CommandLineInterface {
 			System.out.println("2) Change the parameters of the algorithm configurations (if necessary)\n\n");
 		}
 
-		data.addPropertyToGroupCategory("Biclustering Algorithms", PropertiesModules.ALGORITHMSCONFTYPE,  PropertiesModules.ALGORITHMSCONFTYPESINGLE, "Define if each algorithm have more than one configuration file");
+		data.addPropertyToGroupCategory("Biclustering Algorithms", PropertyLabels.ALGORITHMSCONFTYPE,  PropertyLabels.ALGORITHMSCONFTYPESINGLE, "Define if each algorithm have more than one configuration file");
 		//data.addPropertyToGroupCategory("Biclustering Algorithms", PropertiesModules.ALGORITHMCONFIGURATIONSFOLDER,  OSystemUtils.validatePath(dirmethods), "Set the path of the folder that contains the configurations of the biclustering algorithms");
 
 
@@ -740,7 +866,7 @@ public class CommandLineInterface {
 					} catch (Exception e) {
 						n=1;
 					}
-					data.addPropertyToSubGroupCategory("Biclustering Algorithms", "Number of runs for each algorithm", PropertiesModules.NUMBERRUNSPREFIX+biclusteringMethod.getName(), String.valueOf(n), "");
+					data.addPropertyToSubGroupCategory("Biclustering Algorithms", "Number of runs for each algorithm", PropertyLabels.NUMBERRUNSPREFIX+biclusteringMethod.getAlgorithmID(), String.valueOf(n), "");
 
 				}
 
@@ -752,10 +878,10 @@ public class CommandLineInterface {
 			if(checkYesNoParameter(scanner)){
 				System.out.println("How many methods to execute simultaneously (please take care this could lead to instability of the system): ");
 				int n=scanner.nextInt();
-				data.addPropertyToGroupCategory("Concurrent Processes", PropertiesModules.SIMULTANEOUSPROCESSES, String.valueOf(n), "Number of simultaneous processes running in parallel");
+				data.addPropertyToGroupCategory("Concurrent Processes", PropertyLabels.SIMULTANEOUSPROCESSES, String.valueOf(n), "Number of simultaneous processes running in parallel");
 			}
 			else
-				data.addPropertyToGroupCategory("Concurrent Processes", PropertiesModules.SIMULTANEOUSPROCESSES, "1", "Number of simultaneous processes running in parallel");
+				data.addPropertyToGroupCategory("Concurrent Processes", PropertyLabels.SIMULTANEOUSPROCESSES, "1", "Number of simultaneous processes running in parallel");
 
 		}
 
@@ -782,8 +908,8 @@ public class CommandLineInterface {
 		String gseafilepath=null;
 		
 		if(input.toLowerCase().equals("t") || input.toLowerCase().equals("topgo")){
-			initprops.setProperty(PropertiesModules.GSEAPROCESSOR, "topgo");
-			gseafilepath=FilenameUtils.concat(dirpath, PropertiesModules.GSEAPROCESSORTOPGOCONFIGNAME);
+			initprops.setProperty(PropertyLabels.GSEAPROCESSOR, "topgo");
+			gseafilepath=FilenameUtils.concat(dirpath, PropertyLabels.GSEAPROCESSORTOPGOCONFIGNAME);
 			if(!new File(gseafilepath).exists()){
 				writeTopGoConfigurationFile(scannergsea,gseafilepath);
 			}
@@ -796,8 +922,8 @@ public class CommandLineInterface {
 			
 		}
 		else{
-			initprops.setProperty(PropertiesModules.GSEAPROCESSOR, "ontologizer");
-			gseafilepath=FilenameUtils.concat(dirpath, PropertiesModules.GSEAPROCESSORONTOLOGIZERCONFIGNAME);
+			initprops.setProperty(PropertyLabels.GSEAPROCESSOR, "ontologizer");
+			gseafilepath=FilenameUtils.concat(dirpath, PropertyLabels.GSEAPROCESSORONTOLOGIZERCONFIGNAME);
 			if(!new File(gseafilepath).exists())
 				OntologizerPropertiesContainer.writeCompletePropertiesFileTemplate(gseafilepath);
 			else{
@@ -813,7 +939,7 @@ public class CommandLineInterface {
 		System.out.println("Please, setup your settings to perform the Gene Enrichment Analysis in:  "+gseafilepath+"\n\n");
 	
 		if(appendgseafilepath)
-			initprops.setProperty(PropertiesModules.GSEACONFIGURATIONFILE, OSystemUtils.validatePath(gseafilepath));
+			initprops.setProperty(PropertyLabels.GSEACONFIGURATIONFILE, OSystemUtils.validatePath(gseafilepath));
 		
 		return initprops;
 	}
@@ -852,13 +978,13 @@ public class CommandLineInterface {
 		
 		System.out.println("Do you want to create the parallel coordinates figures of the resulting biclusters [yes/no (y/n)]:");
 		if(checkYesNoParameter(scanner)){
-			data.addPropertyToSubGroupCategory("Plot bicluster results","Parallel Coordinates",PropertiesModules.MAKEPARALLELCOORD , "true", "Create the parallel coordinates figures of the resulting biclusters (true or false)");
+			data.addPropertyToSubGroupCategory("Plot bicluster results","Parallel Coordinates",PropertyLabels.MAKEPARALLELCOORD , "true", "Create the parallel coordinates figures of the resulting biclusters (true or false)");
 			chosedoption=true;
 		}
 		
 		System.out.println("Do you want to create the heat map figures of the resulting biclusters [yes/no (y/n)]:");
 		if(checkYesNoParameter(scanner)){
-			data.addPropertyToSubGroupCategory("Plot bicluster results","Heat Maps",PropertiesModules.MAKEHEATMAP , "true", "Create the heat map figures of the resulting biclusters (true or false)");
+			data.addPropertyToSubGroupCategory("Plot bicluster results","Heat Maps",PropertyLabels.MAKEHEATMAP , "true", "Create the heat map figures of the resulting biclusters (true or false)");
 			chosedoption=true;
 		}
 		

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pt.uminho.ceb.biosystems</groupId>
 	<artifactId>JBiclustGE-CLI</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0-SNAPSHOT</version>
 	<name>jbiclustge-cli</name>
 	<description>Command-line interface for JBiclustGE</description>
 
@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>pt.uminho.ceb.biosystems</groupId>
 			<artifactId>JBiclustGE</artifactId>
-			<version>1.0.0</version>
+			<version>1.1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>
@@ -70,7 +70,8 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>jbiclustgecli.cli.CommandLineInterface</mainClass>
+							<mainClass>jbiclustgecli.cli.CommandLineInterfaceTextIO</mainClass>
+							<!-- <mainClass>jbiclustgecli.cli.CommandLineInterface</mainClass> -->
 						</manifest>
 					</archive>
 					<descriptorRefs>

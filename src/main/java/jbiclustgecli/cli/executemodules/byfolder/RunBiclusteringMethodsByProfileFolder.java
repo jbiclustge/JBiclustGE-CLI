@@ -22,23 +22,28 @@ package jbiclustgecli.cli.executemodules.byfolder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.io.FilenameUtils;
+import org.javatuples.Pair;
 
 import jbiclustge.methods.algorithms.AbstractBiclusteringAlgorithmCaller;
 import jbiclustge.methods.algorithms.r.RBiclustAlgorithmCaller;
-import jbiclustge.propertiesmodules.PropertiesModules;
+import jbiclustge.propertiesmodules.PropertyLabels;
 import jbiclustge.propertiesmodules.components.GSEAInfoContainer;
 import jbiclustge.propertiesmodules.readers.BiclusteringMethodsModuleLoader;
 import jbiclustge.propertiesmodules.readers.ConcurrentProcessesModuleloader;
 import jbiclustge.propertiesmodules.readers.ExpressionDatasetModuleLoader;
 import jbiclustge.propertiesmodules.readers.GSEAModuleLoader;
+import jbiclustge.propertiesmodules.readers.OverlapModuleLoader;
 import jbiclustge.propertiesmodules.readers.PlotsOptionsModuleLoader;
 import jbiclustge.utils.osystem.JBiclustGESetupManager;
+import jbiclustgecli.cli.executemodules.CLIFieldsNames;
 import jbiclustgecli.cli.executemodules.CommandLineExecuter;
+import jbiclustgecli.processcontrolcenters.AbstractBiclusteringProcessCLIControlCenter;
 import jbiclustgecli.processcontrolcenters.gsea.BiclusteringMethodsExecutionWithGSEAControlCenter;
 import pt.ornrocha.fileutils.MTUDirUtils;
 import pt.ornrocha.logutils.MTULogLevel;
@@ -56,34 +61,23 @@ public class RunBiclusteringMethodsByProfileFolder extends CommandLineExecuter{
 	protected String profiledir;
 
 	/** The props. */
-	protected Properties props;
+	//protected Properties props;
 
 	/** The controlcenter. */
-	//protected AbstractBiclusteringProcessCLIControlCenter controlcenter;
+	protected AbstractBiclusteringProcessCLIControlCenter controlcenter;
 
-
-	protected ExpressionDatasetModuleLoader expressiondataloader=null;
-
-	/** The methodsloader. */
-	protected BiclusteringMethodsModuleLoader methodsloader=null;
-
-	/** The gsealoader. */
-	protected GSEAModuleLoader gsealoader=null;
-
-	/** The concurrencyloader. */
-	protected ConcurrentProcessesModuleloader concurrencyloader=null;
-
-	/** The plotoptionloader. */
-	protected PlotsOptionsModuleLoader plotoptionloader=null;
 
 	/** The shutdownrenev. */
 	protected boolean shutdownrenev=false;
 
 	/** The dataset. */
-	protected static String DATASET="dataset";
+	//protected static String DATASET="dataset";
 
 	/** The filesindir. */
 	protected ArrayList<String> filesindir;
+	
+	
+	protected String dirresults;
 
 	/**
 	 * Instantiates a new run biclustering methods by folder configurations.
@@ -112,43 +106,107 @@ public class RunBiclusteringMethodsByProfileFolder extends CommandLineExecuter{
 	protected boolean configure() throws Exception {
 
 
-		String datasetfilepath=getDatatsetFilePath();
-		if(datasetfilepath==null)
-			throw new IOException("Dataset file was not found");
+		
 
-
-		String profileconfig=FilenameUtils.concat(profiledir, PropertiesModules.PROFILEFILENAME);
+		String profileconfig=FilenameUtils.concat(profiledir, PropertyLabels.PROFILEFILENAME);
 
 		if(profileconfig==null)
 			throw new IOException("Profile configuration file was not found");
 
 
-		String algorithmsfolder=FilenameUtils.concat(profiledir, PropertiesModules.ALGORITHMSCONFFOLDERNAME);
+		String algorithmsfolder=FilenameUtils.concat(profiledir, PropertyLabels.ALGORITHMSCONFFOLDERNAME);
 		if(algorithmsfolder==null)
 			throw new IOException("Algorithms configuration folder was not found");
 
 
 
 
-		props=PropertiesUtilities.loadFileProperties(profileconfig);
-		props.setProperty(PropertiesModules.INPUTDATASETFILEPATH, OSystemUtils.validatePath(datasetfilepath));
-		props.setProperty(PropertiesModules.ALGORITHMCONFIGURATIONSFOLDER, FilenameUtils.concat(profiledir,PropertiesModules.ALGORITHMSCONFFOLDERNAME));
+		Properties props=PropertiesUtilities.loadFileProperties(profileconfig);
+		String datasetname=(String) props.get(PropertyLabels.DATASETBYFILENAME);
+		if(datasetname!=null && !datasetname.isEmpty())
+			props.setProperty(PropertyLabels.INPUTDATASETFILEPATH, OSystemUtils.validatePath(FilenameUtils.concat(profiledir, datasetname)));
+		else {
+			String datasetfilepath=getDatatsetFilePath();
+			if(datasetfilepath==null)
+				throw new IOException("Dataset file was not found");
 
-		expressiondataloader=ExpressionDatasetModuleLoader.load(props);
+			props.setProperty(PropertyLabels.INPUTDATASETFILEPATH, OSystemUtils.validatePath(datasetfilepath));
+		
+		}
+		props.setProperty(PropertyLabels.ALGORITHMCONFIGURATIONSFOLDER, FilenameUtils.concat(profiledir,PropertyLabels.ALGORITHMSCONFFOLDERNAME));
+
+		ExpressionDatasetModuleLoader expressiondataloader=ExpressionDatasetModuleLoader.load(props);
 
 		if(expressiondataloader.getExpressionDataset()!=null){
 
-			methodsloader=BiclusteringMethodsModuleLoader.load(props);
+			BiclusteringMethodsModuleLoader methodsloader=BiclusteringMethodsModuleLoader.load(props);
 
 			if(methodsloader.getMethodsToRun().size()>0){
+				GSEAModuleLoader gsealoader=null;
+				HashMap<String, Object> mapprops=new HashMap<>();
+
 				String gseafile=getGSEAConfigurationFile();
 				if(gseafile!=null) {
-					props.setProperty(PropertiesModules.GSEACONFIGURATIONFILE, OSystemUtils.validatePath(gseafile));
+					props.setProperty(PropertyLabels.GSEACONFIGURATIONFILE, OSystemUtils.validatePath(gseafile));
 					gsealoader=GSEAModuleLoader.load(props);
 				}
-				concurrencyloader=ConcurrentProcessesModuleloader.load(props);
-				plotoptionloader=PlotsOptionsModuleLoader.load(props);
 
+				if(expressiondataloader.isMissingValuesImputation()){
+					expressiondataloader.getExpressionDataset().writeExpressionDatasetToFile(FilenameUtils.concat(profiledir, "Used_gene_expression_dataset_with_imputated_values.csv"));
+				}
+
+          
+				PlotsOptionsModuleLoader.load(props).addPropertiesToMapping(mapprops);
+				ConcurrentProcessesModuleloader.load(props).addPropertiesToMapping(mapprops);
+				OverlapModuleLoader.load(props).addPropertiesToMapping(mapprops);
+  
+
+				dirresults=MTUDirUtils.checkEnumeratedDirAndIncrementIfExists(profiledir, CLIFieldsNames.BICLUSTERINGRESULTSFOLDER);
+				MTUDirUtils.checkandsetDirectory(dirresults);
+
+				GSEAInfoContainer gseainfo=null;
+				if(gsealoader!=null)
+					gseainfo=gsealoader.getInfoContainer();
+
+				controlcenter=new BiclusteringMethodsExecutionWithGSEAControlCenter(expressiondataloader.getExpressionDataset(), gseainfo, dirresults);
+                controlcenter.setMapOfProperties(mapprops);
+
+
+				LinkedHashMap<AbstractBiclusteringAlgorithmCaller, Pair<Integer, String>> methodstorun=methodsloader.getMethodsToRun();
+				String algorithmsconfigtype =methodsloader.getAlgorithmsConfigurationType();
+				
+				if(algorithmsconfigtype.equals(PropertyLabels.ALGORITHMSCONFTYPESINGLE))
+					controlcenter.setMapOfRuns(convertToMapOfRuns(methodstorun));
+
+				
+				for (Map.Entry<AbstractBiclusteringAlgorithmCaller, Pair<Integer, String>> methods : methodstorun.entrySet()) {
+
+					if(algorithmsconfigtype.equals(PropertyLabels.ALGORITHMSCONFTYPESINGLE)) {
+
+						AbstractBiclusteringAlgorithmCaller method=methods.getKey();
+						if(method instanceof RBiclustAlgorithmCaller)
+							shutdownrenev=true;
+						controlcenter.addBiclusteringMethod(method, methods.getValue().getValue1());
+
+					}
+					else {
+
+						for (int i = 0; i < methods.getValue().getValue0(); i++) {
+							AbstractBiclusteringAlgorithmCaller method=methods.getKey();
+							if(method instanceof RBiclustAlgorithmCaller)
+								shutdownrenev=true;
+							controlcenter.addBiclusteringMethod(method, methods.getValue().getValue1());
+						}
+					}
+
+				}
+
+
+				/*if(plotoptionloader.isCreateHeatMaps())
+					((BiclusteringMethodsExecutionWithGSEAControlCenter) controlcenter).saveBiclusterHeatmap();
+				if(plotoptionloader.isCreateParallelCoordinates())
+					((BiclusteringMethodsExecutionWithGSEAControlCenter) controlcenter).saveBiclusterParallelCoord();
+*/
 				return true;
 			}
 			else
@@ -156,43 +214,15 @@ public class RunBiclusteringMethodsByProfileFolder extends CommandLineExecuter{
 
 		}
 
-		return true;
+		return false;
 	}
 
 	/* (non-Javadoc)
 	 * @see cli.executemodules.CommandLineExecuter#runExecuter()
 	 */
+	
 	@Override
 	protected void runExecuter() throws Exception {
-
-		String dirresults=FilenameUtils.concat(profiledir, "Results_biclustering");
-		MTUDirUtils.checkandsetDirectory(dirresults);
-		GSEAInfoContainer gseainfo=null;
-		if(gsealoader!=null)
-			gseainfo=gsealoader.getInfoContainer();
-		BiclusteringMethodsExecutionWithGSEAControlCenter controlcenter=new BiclusteringMethodsExecutionWithGSEAControlCenter(expressiondataloader.getExpressionDataset(), gseainfo, dirresults);
-		if(expressiondataloader.isMissingValuesImputation()){
-			expressiondataloader.getExpressionDataset().writeExpressionDatasetToFile(FilenameUtils.concat(profiledir, "Used_gene_expression_dataset_with_imputated_values.csv"));
-		}
-
-		LinkedHashMap<AbstractBiclusteringAlgorithmCaller, Integer> methodstorun=methodsloader.getMethodsToRun();
-
-		for (Map.Entry<AbstractBiclusteringAlgorithmCaller, Integer> methods : methodstorun.entrySet()) {
-
-			for (int i = 0; i < methods.getValue(); i++) {
-				AbstractBiclusteringAlgorithmCaller method=methods.getKey();
-				if(method instanceof RBiclustAlgorithmCaller)
-					shutdownrenev=true;
-				controlcenter.addBiclusteringMethod(method);
-			}
-		}
-
-		controlcenter.setNumberConcurrentProcesses(concurrencyloader.getNumberConcurrentProcesses());
-		if(plotoptionloader.isCreateHeatMaps())
-			controlcenter.saveBiclusterHeatmap();
-		if(plotoptionloader.isCreateParallelCoordinates())
-			controlcenter.saveBiclusterParallelCoord();
-
 		controlcenter.execute();
 		/*if(shutdownrenev)
 			RConnector.closeSession();*/
@@ -209,7 +239,7 @@ public class RunBiclusteringMethodsByProfileFolder extends CommandLineExecuter{
 
 		for (String filepath : filesindir) {
 			String name=FilenameUtils.getBaseName(filepath);
-			if(name.toLowerCase().equals(DATASET))
+			if(name.toLowerCase().equals(CLIFieldsNames.DATASETNAME))
 				return filepath;
 		}
 
@@ -226,8 +256,8 @@ public class RunBiclusteringMethodsByProfileFolder extends CommandLineExecuter{
 
 		for (String file : filesindir) {
 			String name=FilenameUtils.getName(file);
-			if(name.toLowerCase().equals(PropertiesModules.GSEAPROCESSORONTOLOGIZERCONFIGNAME.toLowerCase()) || 
-					name.toLowerCase().equals(PropertiesModules.GSEAPROCESSORTOPGOCONFIGNAME.toLowerCase()))
+			if(name.toLowerCase().equals(PropertyLabels.GSEAPROCESSORONTOLOGIZERCONFIGNAME.toLowerCase()) || 
+					name.toLowerCase().equals(PropertyLabels.GSEAPROCESSORTOPGOCONFIGNAME.toLowerCase()))
 				return file;
 		}
 
@@ -235,6 +265,16 @@ public class RunBiclusteringMethodsByProfileFolder extends CommandLineExecuter{
 
 	}
 
+	
+	public static LinkedHashMap<AbstractBiclusteringAlgorithmCaller, Integer> convertToMapOfRuns(LinkedHashMap<AbstractBiclusteringAlgorithmCaller, Pair<Integer, String>> methodstoexec){
+		
+		LinkedHashMap<AbstractBiclusteringAlgorithmCaller, Integer> res=new LinkedHashMap<>();
+		
+		for (AbstractBiclusteringAlgorithmCaller alg : methodstoexec.keySet()) {
+			res.put(alg, methodstoexec.get(alg).getValue0());
+		}
+		return res;
+	}
 
 	/**
 	 * The main method.
@@ -248,17 +288,20 @@ public class RunBiclusteringMethodsByProfileFolder extends CommandLineExecuter{
 
 		LogMessageCenter.getLogger().setLogLevel(MTULogLevel.TRACE);
 		//RunBiclusteringMethodsByFolderConfigurations.writeConfigurationsToFolder("/home/orocha/discodados/ApenasTrabalho/Testes/configs");
-		if(!JBiclustGESetupManager.isJbiclustGEConfigured()){
+	   if(!JBiclustGESetupManager.isJbiclustGEConfigured()){
 			if(OSystemUtils.isLinux())
 				//JBiclustGESetupManager.setupJBiclustGEMethodsEnvironment("/home/orocha/discodados/ApenasTrabalho/Testes/TestRlibs");
-				JBiclustGESetupManager.setupJBiclustGEMethodsEnvironment(null);
+				JBiclustGESetupManager.setupJBiclustGEMethodsEnvironment(null,"/home/orocha/JBiclustGE-CLI/Rlocal_3.4.3");
 			else
-				JBiclustGESetupManager.setupJBiclustGEMethodsEnvironment("E:\\libsR");
+				JBiclustGESetupManager.setupJBiclustGEMethodsEnvironment("E:\\libsR",null);
 
 		}
+		
+		
+		
 		RunBiclusteringMethodsByProfileFolder runner=null;
 		if(OSystemUtils.isLinux())
-			runner=new RunBiclusteringMethodsByProfileFolder("/home/orocha/discodados/ApenasTrabalho/testes_ecoli");
+			runner=new RunBiclusteringMethodsByProfileFolder("/home/orocha/discodados/ApenasTrabalho/GeneExpressionProfiles/blood1");
 		if(OSystemUtils.isWindows())
 			runner=new RunBiclusteringMethodsByProfileFolder("E:\\configs");
 		runner.execute();
@@ -273,6 +316,13 @@ public class RunBiclusteringMethodsByProfileFolder extends CommandLineExecuter{
 	@Override
 	public boolean needsToCloseRsession() {
 		return shutdownrenev;
+	}
+
+
+
+	@Override
+	public String getBiclusteringResultsFolder() {
+		return dirresults;
 	}
 
 }

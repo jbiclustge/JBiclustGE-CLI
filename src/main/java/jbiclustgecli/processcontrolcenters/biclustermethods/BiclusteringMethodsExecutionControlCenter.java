@@ -21,10 +21,14 @@
 package jbiclustgecli.processcontrolcenters.biclustermethods;
 
 import java.util.ArrayList;
+import java.util.Map;
+
+import org.apache.commons.io.FilenameUtils;
 
 import jbiclustge.datatools.expressiondata.dataset.ExpressionData;
 import jbiclustgecli.processcontrolcenters.AbstractBiclusteringProcessCLIControlCenter;
 import jbiclustgecli.processcontrolcenters.tasks.BiclusteringMethodRunTask;
+import pt.ornrocha.fileutils.MTUDirUtils;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -36,10 +40,12 @@ public class BiclusteringMethodsExecutionControlCenter extends  AbstractBicluste
 	protected String saveresultsindir;
 	
 	/** The saveheatmaps. */
-	protected boolean saveheatmaps=false;
+	/*protected boolean saveheatmaps=false;
 	
-	/** The saveparallelcoord. */
-	protected boolean saveparallelcoord=false;
+	*//** The saveparallelcoord. *//*
+	protected boolean saveparallelcoord=false;*/
+	
+
 
 	/**
 	 * Instantiates a new biclustering methods execution control center.
@@ -54,17 +60,20 @@ public class BiclusteringMethodsExecutionControlCenter extends  AbstractBicluste
 	
 	/**
 	 * Save bicluster heatmap.
-	 */
+	 *//*
 	public void saveBiclusterHeatmap(){
 		this.saveheatmaps=true;
 	}
 	
-	/**
+	*//**
 	 * Save bicluster parallel coord.
-	 */
+	 *//*
 	public void saveBiclusterParallelCoord(){
 		this.saveparallelcoord=true;
-	}
+	}*/
+	
+	
+	
 
 
 	/* (non-Javadoc)
@@ -72,17 +81,38 @@ public class BiclusteringMethodsExecutionControlCenter extends  AbstractBicluste
 	 */
 	@Override
 	protected ArrayList<Runnable> getListProcessesToRun() {
-		ArrayList<Runnable> methodtasks=new ArrayList<>();
 		
+		ArrayList<Runnable> methodtasks=new ArrayList<>();
+
 		for (int i = 0; i < biclustmethods.size(); i++) {
-			BiclusteringMethodRunTask runmethod=new BiclusteringMethodRunTask(biclustmethods.get(i), saveresultsindir);
-			if(saveheatmaps)
+			
+			Integer numberprocs=null;
+			if(runmap!=null && runmap.containsKey(biclustmethods.get(i)))
+				numberprocs=runmap.get(biclustmethods.get(i));
+					
+			BiclusteringMethodRunTask runmethod=new BiclusteringMethodRunTask(biclustmethods.get(i), getFolderOfResults(i),numberprocs);
+			runmethod.setProperties(props);
+			/*if(saveheatmaps)
 				runmethod.saveHeatmaps();
 			if(saveparallelcoord)
-				runmethod.saveParallelCoordinates();
+				runmethod.saveParallelCoordinates();*/
+			
 			methodtasks.add(runmethod);
 		}
+		
 		return methodtasks;
+	}
+	
+	protected String getFolderOfResults(int index) {
+		
+		if(confignamelist!=null && index<=confignamelist.size()) {
+			String configname=confignamelist.get(index);
+			String folderpath=FilenameUtils.concat(saveresultsindir, configname);
+			MTUDirUtils.checkDirectory(folderpath);
+			return folderpath;
+		}
+		else
+			return saveresultsindir;
 	}
 
 }
