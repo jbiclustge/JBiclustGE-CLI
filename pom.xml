@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pt.uminho.ceb.biosystems</groupId>
 	<artifactId>JBiclustGE-CLI</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>jbiclustge-cli</name>
 	<description>Command-line interface for JBiclustGE</description>
 
@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>pt.uminho.ceb.biosystems</groupId>
 			<artifactId>JBiclustGE</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>
@@ -118,6 +118,7 @@
 			<plugin>
 				<groupId>org.codehaus.izpack</groupId>
 				<artifactId>izpack-maven-plugin</artifactId>
+				<version>${izpack.version}</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
